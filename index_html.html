@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XEINA Builder v2</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--p:#9b59b6;--pd:#6c3483;--pl:#d7bde2;--ppale:#f5eefb;--border:#e2d4ef;--sb:#fff;--bg:#f0ebf8;--ink:#1a1a1a;--muted:#777}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--ink);height:100vh;overflow:hidden;display:flex;flex-direction:column;font-size:14px}
+
+/* ── TOP BAR ── */
+.topbar{background:#111;color:#fff;display:flex;align-items:center;padding:0 1rem;height:48px;gap:.5rem;flex-shrink:0;border-bottom:1px solid #333}
+.tb-logo{font-size:.85rem;font-weight:900;letter-spacing:.12em;color:var(--pl);margin-right:.5rem;white-space:nowrap}
+.tb-sep{width:1px;height:24px;background:#333;margin:0 .3rem}
+.tb-tabs{display:flex;height:100%;overflow-x:auto}
+.tb-tab{background:none;border:none;color:#888;padding:0 .9rem;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s;height:100%}
+.tb-tab.active{color:#fff;border-bottom-color:var(--pl)}
+.tb-tab:hover:not(.active){color:#ccc}
+.tb-right{margin-left:auto;display:flex;gap:.4rem;align-items:center;flex-shrink:0}
+.btn-bar{border:none;border-radius:4px;padding:.38rem .85rem;font-size:.72rem;font-weight:700;cursor:pointer;letter-spacing:.05em;white-space:nowrap;transition:all .2s}
+.btn-export{background:var(--p);color:#fff}.btn-export:hover{background:var(--pd)}
+.btn-sec{background:#2a2a2a;color:#bbb}.btn-sec:hover{background:#444;color:#fff}
+.btn-danger{background:#3a1a1a;color:#f88}.btn-danger:hover{background:#c00;color:#fff}
+
+/* ── LAYOUT ── */
+.workspace{display:flex;flex:1;overflow:hidden}
+
+/* ── SIDEBAR ── */
+.sidebar{width:310px;background:var(--sb);border-right:1.5px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.sb-scroll{flex:1;overflow-y:auto;padding:.8rem}
+.sb-scroll::-webkit-scrollbar{width:3px}
+.sb-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.panel{display:none}.panel.active{display:block}
+.sec-hd{font-size:.63rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--p);padding:.35rem 0;border-bottom:1.5px solid var(--border);margin:.9rem 0 .6rem}
+.field{display:flex;flex-direction:column;gap:.25rem;margin-bottom:.65rem}
+.field label{font-size:.62rem;font-weight:700;color:#666;letter-spacing:.08em;text-transform:uppercase}
+.field input,.field textarea,.field select{border:1.5px solid var(--border);border-radius:5px;padding:.42rem .65rem;font-size:.8rem;font-family:inherit;color:var(--ink);background:#faf8fc;width:100%;transition:border-color .2s}
+.field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--p)}
+.field textarea{resize:vertical;min-height:55px;line-height:1.5}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.4rem}
+.color-row{display:flex;align-items:center;gap:.5rem}
+.color-row input[type=color]{width:36px;height:30px;border:1.5px solid var(--border);border-radius:4px;cursor:pointer;padding:2px;background:#fff;flex-shrink:0}
+.color-row input[type=text]{flex:1}
+.add-btn{background:var(--p);color:#fff;border:none;border-radius:5px;padding:.55rem;font-size:.75rem;font-weight:700;cursor:pointer;width:100%;margin-top:.3rem;transition:background .2s}
+.add-btn:hover{background:var(--pd)}
+.del-btn{background:#ffebeb;color:#c00;border:none;border-radius:3px;padding:.15rem .5rem;font-size:.68rem;cursor:pointer;font-weight:700;flex-shrink:0}
+.del-btn:hover{background:#c00;color:#fff}
+.hint{font-size:.68rem;color:#999;background:#f9f5ff;border-radius:4px;padding:.45rem .6rem;border:1px solid var(--border);line-height:1.5;margin-bottom:.5rem}
+.logo-drop{border:1.5px dashed var(--pl);border-radius:7px;padding:.8rem;text-align:center;background:#f9f5ff;cursor:pointer;transition:border-color .2s}
+.logo-drop:hover{border-color:var(--p)}
+.logo-drop img{max-height:40px;max-width:100%;object-fit:contain;display:block;margin:0 auto}
+.logo-drop p{font-size:.68rem;color:#aaa;margin-top:.3rem}
+.mini-btn{background:var(--p);color:#fff;border:none;border-radius:4px;padding:.32rem .7rem;font-size:.68rem;font-weight:700;cursor:pointer;margin-top:.4rem;display:inline-block}
+.mini-btn.gray{background:#ddd;color:#444}
+.mini-btn.gray:hover{background:#bbb}
+.tag{display:inline-block;background:var(--ppale);color:var(--p);border:1px solid var(--pl);border-radius:3px;padding:.1rem .45rem;font-size:.65rem;font-weight:700;letter-spacing:.06em}
+
+/* ── PROJECT CARDS ── */
+.pcard{background:#faf8fc;border:1.5px solid var(--border);border-radius:7px;margin-bottom:.6rem;overflow:hidden}
+.pcard-head{display:flex;align-items:center;padding:.55rem .75rem;cursor:pointer;gap:.5rem;user-select:none}
+.pcard-head:hover{background:#f0ebf7}
+.pcard-dot{width:8px;height:8px;border-radius:50%;background:var(--p);flex-shrink:0}
+.pcard-name{flex:1;font-size:.78rem;font-weight:700;color:var(--p)}
+.pcard-arr{font-size:.7rem;color:#bbb;transition:transform .2s}
+.pcard.open .pcard-arr{transform:rotate(180deg)}
+.pcard-body{display:none;padding:.7rem;border-top:1px solid var(--border);background:#fff}
+.pcard.open .pcard-body{display:block}
+.thumb-row{display:flex;gap:.35rem;flex-wrap:wrap;margin:.3rem 0 .4rem}
+.thumb{position:relative;width:48px;height:40px;border-radius:3px;overflow:hidden;cursor:grab;border:1px solid var(--border)}
+.thumb.dragging{opacity:.4}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb-x{position:absolute;top:0;right:0;background:rgba(200,0,0,.85);color:#fff;border:none;font-size:.6rem;cursor:pointer;width:14px;height:14px;display:flex;align-items:center;justify-content:center;line-height:1}
+.thumb-add{width:48px;height:40px;border:1.5px dashed var(--pl);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--p);cursor:pointer;background:var(--ppale);flex-shrink:0}
+.thumb-add:hover{background:#ede7f6}
+.size-btns{display:flex;gap:.3rem;margin-bottom:.5rem}
+.size-btn{flex:1;background:#f0ebf7;border:1.5px solid var(--border);border-radius:4px;padding:.28rem;font-size:.65rem;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;color:#666}
+.size-btn.active,.size-btn:hover{background:var(--p);color:#fff;border-color:var(--p)}
+
+/* ── SECTIONS LIST ── */
+.sec-item{background:#faf8fc;border:1.5px solid var(--border);border-radius:5px;padding:.45rem .7rem;margin-bottom:.4rem;display:flex;align-items:center;gap:.5rem;cursor:grab;user-select:none}
+.sec-item:active{cursor:grabbing;border-color:var(--p);background:var(--ppale)}
+.sec-drag{color:#ccc;font-size:.75rem}
+.sec-item-name{flex:1;font-size:.75rem;font-weight:600;color:#444}
+.sec-vis{background:none;border:1px solid var(--border);border-radius:3px;padding:.1rem .35rem;font-size:.6rem;cursor:pointer;color:#888;transition:all .2s}
+.sec-vis:hover,.sec-vis.active{border-color:var(--p);color:var(--p)}
+.sec-del{background:#ffebeb;color:#c00;border:none;border-radius:3px;padding:.1rem .35rem;font-size:.6rem;cursor:pointer;font-weight:700}
+.sec-del:hover{background:#c00;color:#fff}
+.sec-type-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.3rem;margin-top:.4rem}
+.sec-type-btn{background:#f9f5ff;border:1.5px solid var(--border);border-radius:4px;padding:.38rem;font-size:.68rem;font-weight:700;cursor:pointer;text-align:center;color:#555;transition:all .2s}
+.sec-type-btn:hover{border-color:var(--p);color:var(--p);background:var(--ppale)}
+
+/* ── PAGES ── */
+.page-item{background:#faf8fc;border:1.5px solid var(--border);border-radius:5px;padding:.5rem .75rem;margin-bottom:.4rem;display:flex;align-items:center;gap:.5rem}
+.page-item.active-page{border-color:var(--p);background:var(--ppale)}
+.page-name{flex:1;font-size:.78rem;font-weight:600;color:#444}
+.page-btn{background:none;border:1px solid var(--border);border-radius:3px;padding:.1rem .4rem;font-size:.62rem;cursor:pointer;color:#888;transition:all .2s}
+.page-btn:hover{border-color:var(--p);color:var(--p)}
+
+/* ── PREVIEW ── */
+.preview-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#c8c0d8;position:relative}
+.preview-bar{background:#222;display:flex;align-items:center;padding:.35rem .9rem;gap:.6rem;flex-shrink:0}
+.pdot{width:9px;height:9px;border-radius:50%}
+.purl{flex:1;background:#333;border-radius:3px;padding:.25rem .7rem;font-size:.68rem;color:#aaa;font-family:monospace}
+.prev-size-btns{display:flex;gap:.3rem}
+.psb{background:#333;border:none;color:#888;border-radius:3px;padding:.22rem .5rem;font-size:.65rem;cursor:pointer;transition:all .2s}
+.psb.active,.psb:hover{background:var(--p);color:#fff}
+.preview-scaler{flex:1;display:flex;justify-content:center;align-items:flex-start;overflow:auto;padding:1.5rem}
+.preview-shell{background:#fff;box-shadow:0 8px 48px rgba(0,0,0,.25);border-radius:4px;overflow:hidden;transform-origin:top center;transition:width .3s}
+.preview-shell iframe{border:none;display:block}
+
+/* ── MODAL ── */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center}
+.modal-ov.show{display:flex}
+.modal{background:#fff;border-radius:10px;padding:1.8rem;max-width:500px;width:90%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal h2{color:var(--p);font-size:1.1rem;margin-bottom:.8rem}
+.modal-step{background:#f9f5ff;border:1px solid var(--border);border-radius:5px;padding:.55rem .8rem;font-size:.78rem;display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem}
+.sn{background:var(--p);color:#fff;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;flex-shrink:0}
+.modal-btns{display:flex;gap:.6rem;margin-top:1rem;flex-wrap:wrap}
+.mbtn{border:none;border-radius:5px;padding:.65rem 1.2rem;font-size:.82rem;font-weight:700;cursor:pointer}
+.mbtn.p{background:var(--p);color:#fff}.mbtn.s{background:#eee;color:#333}
+.mbtn:hover{opacity:.85}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="tb-logo">✦ XEINA</div>
+  <div class="tb-sep"></div>
+  <div class="tb-tabs">
+    <button class="tb-tab active" onclick="switchPanel('identity')">Identity</button>
+    <button class="tb-tab" onclick="switchPanel('pages')">Pages</button>
+    <button class="tb-tab" onclick="switchPanel('sections')">Sections</button>
+    <button class="tb-tab" onclick="switchPanel('projects')">Projects</button>
+    <button class="tb-tab" onclick="switchPanel('branding')">Branding</button>
+    <button class="tb-tab" onclick="switchPanel('seo')">SEO</button>
+  </div>
+  <div class="tb-sep"></div>
+  <div class="tb-right">
+    <div class="prev-size-btns">
+      <button class="psb active" onclick="setPreviewSize('desktop',this)" title="Desktop">🖥</button>
+      <button class="psb" onclick="setPreviewSize('tablet',this)" title="Tablet">📱</button>
+      <button class="psb" onclick="setPreviewSize('mobile',this)" title="Mobile">📲</button>
+    </div>
+    <div class="tb-sep"></div>
+    <button class="btn-bar btn-sec" onclick="importJSON()">↑ Import</button>
+    <button class="btn-bar btn-sec" onclick="exportJSON()">↓ JSON</button>
+    <button class="btn-bar btn-export" onclick="showExport()">⬇ Export HTML</button>
+  </div>
+</div>
+
+<div class="workspace">
+<!-- ── SIDEBAR ── -->
+<div class="sidebar">
+<div class="sb-scroll">
+
+<!-- IDENTITY -->
+<div class="panel active" id="panel-identity">
+  <div class="sec-hd">Logo</div>
+  <div class="logo-drop" onclick="document.getElementById('logo-file').click()">
+    <img id="logo-img" src="" style="display:none" alt="logo">
+    <p id="logo-hint">Click to upload your logo</p>
+    <span class="mini-btn">Upload</span>
+  </div>
+  <input type="file" id="logo-file" accept="image/*" style="display:none" onchange="handleLogo(this)">
+  <div style="margin-top:.4rem;display:flex;gap:.3rem">
+    <button class="mini-btn gray" onclick="state.logo='';document.getElementById('logo-img').style.display='none';document.getElementById('logo-hint').style.display='';refresh()">Remove logo</button>
+  </div>
+
+  <div class="sec-hd">Hero — Landing Page</div>
+  <div class="hint">Full-screen Typography hero — اتحكمي في كل كلمة وحجمها وحركتها</div>
+  <div class="field"><label>Line 1</label><input id="h-l1" value="Design that" oninput="refresh()"></div>
+  <div class="field"><label>Line 2 (highlighted)</label><input id="h-l2" value="speaks." oninput="refresh()"></div>
+  <div class="field"><label>Line 3 (muted)</label><input id="h-l3" value="before you do." oninput="refresh()"></div>
+  <div class="field"><label>Subtext</label><textarea id="h-sub" oninput="refresh()">Branding, campaigns & social media design — crafted with purpose, built to be remembered.</textarea></div>
+  <div class="row2">
+    <div class="field"><label>CTA Button</label><input id="h-cta" value="View Work" oninput="refresh()"></div>
+    <div class="field"><label>CTA 2</label><input id="h-cta2" value="Get in Touch" oninput="refresh()"></div>
+  </div>
+  <div class="row3">
+    <div class="field"><label>L1 size (vw)</label><input type="number" id="h-l1sz" value="8" min="3" max="18" step=".5" oninput="refresh()"></div>
+    <div class="field"><label>L2 size (vw)</label><input type="number" id="h-l2sz" value="14" min="5" max="22" step=".5" oninput="refresh()"></div>
+    <div class="field"><label>L3 size (vw)</label><input type="number" id="h-l3sz" value="9" min="3" max="18" step=".5" oninput="refresh()"></div>
+  </div>
+  <div class="row2">
+    <div class="field"><label>Hero BG Color</label>
+      <div class="color-row"><input type="color" id="h-bg" value="#0a0a0a" oninput="refresh()"><input type="text" value="#0a0a0a" oninput="this.previousElementSibling.value=this.value;refresh()"></div>
+    </div>
+    <div class="field"><label>Text Color</label>
+      <div class="color-row"><input type="color" id="h-tc" value="#f5f0fa" oninput="refresh()"><input type="text" value="#f5f0fa" oninput="this.previousElementSibling.value=this.value;refresh()"></div>
+    </div>
+  </div>
+  <div class="field"><label>Scroll Indicator Text</label><input id="h-scroll" value="Scroll to explore" oninput="refresh()"></div>
+
+  <div class="sec-hd">About</div>
+  <div class="field"><label>Name / Title</label><input id="f-name" value="Zeina Ashraf" oninput="refresh()"></div>
+  <div class="field"><label>Role + City</label><input id="f-role" value="Graphic Designer · Cairo, Egypt" oninput="refresh()"></div>
+  <div class="field"><label>Bio §1</label><textarea id="f-b1" oninput="refresh()">I'm Zeina Ashraf — a graphic designer with 3+ years helping brands find their visual identity. I work at the intersection of strategy and aesthetics.</textarea></div>
+  <div class="field"><label>Bio §2</label><textarea id="f-b2" oninput="refresh()">From brand systems to scroll-stopping social content — I bring the same care and craft to every project.</textarea></div>
+  <div class="row3">
+    <div class="field"><label>Stat 1 №</label><input id="s1n" value="3+" oninput="refresh()"></div>
+    <div class="field"><label>Stat 2 №</label><input id="s2n" value="20+" oninput="refresh()"></div>
+    <div class="field"><label>Stat 3 №</label><input id="s3n" value="50+" oninput="refresh()"></div>
+  </div>
+  <div class="row3">
+    <div class="field"><label>Stat 1 Label</label><input id="s1l" value="Years" oninput="refresh()"></div>
+    <div class="field"><label>Stat 2 Label</label><input id="s2l" value="Clients" oninput="refresh()"></div>
+    <div class="field"><label>Stat 3 Label</label><input id="s3l" value="Projects" oninput="refresh()"></div>
+  </div>
+
+  <div class="sec-hd">Services</div>
+  <div id="srv-list"></div>
+  <button class="add-btn" onclick="addService()">+ Add Service</button>
+
+  <div class="sec-hd">Contact & Social</div>
+  <div class="field"><label>Portfolio URL</label><input id="f-port" value="https://xeinna.myportfolio.com/" oninput="refresh()"></div>
+  <div class="field"><label>Email</label><input id="f-email" placeholder="zeina@..." oninput="refresh()"></div>
+  <div class="field"><label>Instagram</label><input id="f-ig" placeholder="https://instagram.com/..." oninput="refresh()"></div>
+  <div class="field"><label>Behance</label><input id="f-beh" placeholder="https://behance.net/..." oninput="refresh()"></div>
+  <div class="field"><label>LinkedIn</label><input id="f-li" placeholder="https://linkedin.com/..." oninput="refresh()"></div>
+  <div class="field"><label>WhatsApp</label><input id="f-wa" placeholder="https://wa.me/..." oninput="refresh()"></div>
+  <div class="field"><label>Footer Text</label><input id="f-foot" value="© 2026 Zeina Ashraf · All rights reserved" oninput="refresh()"></div>
+
+  <div class="sec-hd">Marquee Strip</div>
+  <div class="hint">Separate with •</div>
+  <div class="field"><textarea id="f-marq" oninput="refresh()">Branding & Identity • Campaigns • Social Media • Creative Direction • Key Visuals • Typography</textarea></div>
+</div>
+
+<!-- PAGES -->
+<div class="panel" id="panel-pages">
+  <div class="hint">أضيفي صفحات كاملة — كل صفحة ليها ناف بار مستقل وتصميم مختلف. الصفحة الـ Landing Page هي الرئيسية دايمًا.</div>
+  <div class="sec-hd">Your Pages</div>
+  <div id="pages-list"></div>
+  <div class="sec-hd" style="margin-top:.8rem">Add New Page</div>
+  <div class="field"><label>Page Name</label><input id="new-page-name" placeholder="e.g. About Me"></div>
+  <div class="field"><label>Page Type</label>
+    <select id="new-page-type">
+      <option value="about">About</option>
+      <option value="contact">Contact</option>
+      <option value="custom">Custom / Blank</option>
+      <option value="project">Project Page</option>
+    </select>
+  </div>
+  <button class="add-btn" onclick="addPage()">+ Add Page</button>
+  <div class="sec-hd" style="margin-top:1rem">Active Page Sections</div>
+  <div class="hint">هذي السكشنز بتاعة الصفحة اللي اخترتيها. روحي لـ Sections تبان كاملة.</div>
+</div>
+
+<!-- SECTIONS -->
+<div class="panel" id="panel-sections">
+  <div class="hint">اسحبي لإعادة الترتيب. اضغطي العين لإخفاء سكشن. كل سكشن قابل للحذف والإضافة بحرية.</div>
+  <div class="sec-hd">Page: <span id="sec-page-label">Landing</span></div>
+  <div id="sec-list"></div>
+  <div class="sec-hd" style="margin-top:.8rem">Add Section</div>
+  <div class="sec-type-grid">
+    <button class="sec-type-btn" onclick="addSec('hero')">Hero</button>
+    <button class="sec-type-btn" onclick="addSec('marquee')">Marquee</button>
+    <button class="sec-type-btn" onclick="addSec('about')">About</button>
+    <button class="sec-type-btn" onclick="addSec('work')">Portfolio</button>
+    <button class="sec-type-btn" onclick="addSec('process')">Process</button>
+    <button class="sec-type-btn" onclick="addSec('services')">Services</button>
+    <button class="sec-type-btn" onclick="addSec('testimonials')">Testimonials</button>
+    <button class="sec-type-btn" onclick="addSec('cta')">CTA</button>
+    <button class="sec-type-btn" onclick="addSec('faq')">FAQ</button>
+    <button class="sec-type-btn" onclick="addSec('contact')">Contact</button>
+    <button class="sec-type-btn" onclick="addSec('gallery')">Gallery</button>
+    <button class="sec-type-btn" onclick="addSec('text')">Rich Text</button>
+    <button class="sec-type-btn" onclick="addSec('stats')">Stats</button>
+    <button class="sec-type-btn" onclick="addSec('clients')">Clients</button>
+    <button class="sec-type-btn" onclick="addSec('footer')">Footer</button>
+  </div>
+
+  <div class="sec-hd" style="margin-top:1rem">Section Spacing</div>
+  <div class="row2">
+    <div class="field"><label>Padding Top (px)</label><input type="number" id="sec-pt" value="112" min="0" max="300" step="8" oninput="refresh()"></div>
+    <div class="field"><label>Padding Bottom (px)</label><input type="number" id="sec-pb" value="112" min="0" max="300" step="8" oninput="refresh()"></div>
+  </div>
+  <div class="field"><label>Max Width (px)</label><input type="number" id="sec-maxw" value="1160" min="600" max="1600" step="10" oninput="refresh()"></div>
+  <div class="field"><label>Section BG Color</label>
+    <div class="color-row"><input type="color" id="sec-bg-c" value="#faf8fc" oninput="refresh()"><input type="text" value="#faf8fc" oninput="this.previousElementSibling.value=this.value;refresh()"></div>
+  </div>
+</div>
+
+<!-- PROJECTS -->
+<div class="panel" id="panel-projects">
+  <div class="hint">كل مشروع: كوفر + سلايدر صور (اسحبي لترتيبها) + نصوص كاملة + حجم الكارد في الجريد + نوع العرض.</div>
+  <div class="sec-hd">Portfolio View</div>
+  <div class="field"><label>Layout Style</label>
+    <select id="proj-layout" onchange="refresh()">
+      <option value="grid">Grid (Auto)</option>
+      <option value="masonry">Masonry</option>
+      <option value="list">List</option>
+    </select>
+  </div>
+  <div class="row2">
+    <div class="field"><label>Grid Columns</label><input type="number" id="proj-cols" value="3" min="1" max="6" oninput="refresh()"></div>
+    <div class="field"><label>Gap (px)</label><input type="number" id="proj-gap" value="16" min="0" max="60" oninput="refresh()"></div>
+  </div>
+  <div class="field"><label>Card Aspect Ratio</label>
+    <select id="proj-ratio" onchange="refresh()">
+      <option value="4/3">4:3 (standard)</option>
+      <option value="1/1">1:1 (square)</option>
+      <option value="16/9">16:9 (wide)</option>
+      <option value="3/4">3:4 (portrait)</option>
+      <option value="2/1">2:1 (panoramic)</option>
+    </select>
+  </div>
+  <div class="field"><label>Card Hover Effect</label>
+    <select id="proj-hover" onchange="refresh()">
+      <option value="zoom">Zoom image</option>
+      <option value="lift">Lift + shadow</option>
+      <option value="overlay">Color overlay</option>
+      <option value="border">Border accent</option>
+    </select>
+  </div>
+  <div class="sec-hd">Projects</div>
+  <div id="proj-list"></div>
+  <button class="add-btn" onclick="addProject()">+ Add Project</button>
+</div>
+
+<!-- BRANDING -->
+<div class="panel" id="panel-branding">
+  <div class="sec-hd">Colors</div>
+  <div class="field"><label>Accent / Primary</label><div class="color-row"><input type="color" id="c-p" value="#9b59b6" oninput="refresh()"><input type="text" value="#9b59b6" oninput="this.previousElementSibling.value=this.value;refresh()"></div></div>
+  <div class="field"><label>Background</label><div class="color-row"><input type="color" id="c-bg" value="#faf8fc" oninput="refresh()"><input type="text" value="#faf8fc" oninput="this.previousElementSibling.value=this.value;refresh()"></div></div>
+  <div class="field"><label>Alt BG (cards/sections)</label><div class="color-row"><input type="color" id="c-alt" value="#ffffff" oninput="refresh()"><input type="text" value="#ffffff" oninput="this.previousElementSibling.value=this.value;refresh()"></div></div>
+  <div class="field"><label>Text / Ink</label><div class="color-row"><input type="color" id="c-ink" value="#1a1a1a" oninput="refresh()"><input type="text" value="#1a1a1a" oninput="this.previousElementSibling.value=this.value;refresh()"></div></div>
+  <div class="field"><label>Muted Text</label><div class="color-row"><input type="color" id="c-mu" value="#777777" oninput="refresh()"><input type="text" value="#777777" oninput="this.previousElementSibling.value=this.value;refresh()"></div></div>
+
+  <div class="sec-hd">Typography</div>
+  <div class="field"><label>Font Family</label>
+    <select id="f-font" onchange="refresh()">
+      <option value="'Segoe UI',system-ui,sans-serif">Segoe UI</option>
+      <option value="'Helvetica Neue',sans-serif">Helvetica Neue</option>
+      <option value="'Georgia',serif">Georgia</option>
+      <option value="'Playfair Display',serif">Playfair Display (Google)</option>
+      <option value="'Cormorant Garamond',serif">Cormorant Garamond (Google)</option>
+      <option value="'Courier New',monospace">Courier New</option>
+      <option value="'Futura',sans-serif">Futura</option>
+    </select>
+  </div>
+  <div class="row3">
+    <div class="field"><label>H1 (vw)</label><input type="number" id="f-h1" value="4" min="1.5" max="10" step=".25" oninput="refresh()"></div>
+    <div class="field"><label>H2 (rem)</label><input type="number" id="f-h2" value="2.6" min="1" max="6" step=".1" oninput="refresh()"></div>
+    <div class="field"><label>Body (rem)</label><input type="number" id="f-body" value="1" min=".75" max="1.4" step=".05" oninput="refresh()"></div>
+  </div>
+  <div class="row2">
+    <div class="field"><label>Letter-spacing (em)</label><input type="number" id="f-ls" value="-.02" min="-.06" max=".12" step=".005" oninput="refresh()"></div>
+    <div class="field"><label>Line-height</label><input type="number" id="f-lh" value="1.85" min="1.2" max="2.5" step=".05" oninput="refresh()"></div>
+  </div>
+
+  <div class="sec-hd">Buttons</div>
+  <div class="row3">
+    <div class="field"><label>Radius (px)</label><input type="number" id="b-r" value="2" min="0" max="50" oninput="refresh()"></div>
+    <div class="field"><label>Pad V (px)</label><input type="number" id="b-pv" value="14" min="6" max="30" oninput="refresh()"></div>
+    <div class="field"><label>Pad H (px)</label><input type="number" id="b-ph" value="32" min="12" max="80" oninput="refresh()"></div>
+  </div>
+  <div class="field"><label>Button Style</label>
+    <select id="b-style" onchange="refresh()">
+      <option value="filled">Filled</option>
+      <option value="outline">Outline</option>
+      <option value="pill">Pill (rounded)</option>
+      <option value="underline">Underline only</option>
+    </select>
+  </div>
+
+  <div class="sec-hd">Animations</div>
+  <div class="row2">
+    <div class="field"><label>Scroll Reveal</label><select id="a-rev" onchange="refresh()"><option value="1">On</option><option value="0">Off</option></select></div>
+    <div class="field"><label>Speed (s)</label><input type="number" id="a-spd" value=".85" min=".3" max="2" step=".1" oninput="refresh()"></div>
+  </div>
+  <div class="row2">
+    <div class="field"><label>Parallax</label><select id="a-par" onchange="refresh()"><option value="1">On</option><option value="0">Off</option></select></div>
+    <div class="field"><label>Smooth Scroll</label><select id="a-sm" onchange="refresh()"><option value="1">On</option><option value="0">Off</option></select></div>
+  </div>
+  <div class="row2">
+    <div class="field"><label>Page Transition</label><select id="a-pt" onchange="refresh()"><option value="1">On</option><option value="0">Off</option></select></div>
+    <div class="field"><label>Dark Mode Toggle</label><select id="a-dm" onchange="refresh()"><option value="1">Show</option><option value="0">Hide</option></select></div>
+  </div>
+  <div class="field"><label>Marquee Speed (s)</label><input type="number" id="a-mq" value="18" min="5" max="60" step="1" oninput="refresh()"></div>
+  <div class="field"><label>Stagger Delay (ms)</label><input type="number" id="a-stg" value="120" min="0" max="500" step="10" oninput="refresh()"></div>
+
+  <div class="sec-hd">Nav</div>
+  <div class="field"><label>Navbar Style</label>
+    <select id="nav-style" onchange="refresh()">
+      <option value="transparent">Transparent + blur</option>
+      <option value="solid">Solid white</option>
+      <option value="dark">Dark</option>
+      <option value="minimal">Minimal (no background)</option>
+    </select>
+  </div>
+</div>
+
+<!-- SEO -->
+<div class="panel" id="panel-seo">
+  <div class="sec-hd">Page Meta</div>
+  <div class="field"><label>Site Title</label><input id="seo-title" value="XEINA — Zeina Ashraf · Graphic Designer" oninput="refresh()"></div>
+  <div class="field"><label>Meta Description</label><textarea id="seo-desc" oninput="refresh()">Cairo-based graphic designer specializing in branding, visual identity, and social media design.</textarea></div>
+  <div class="field"><label>OG Image URL</label><input id="seo-og" placeholder="https://..." oninput="refresh()"></div>
+  <div class="field"><label>Favicon URL</label><input id="seo-fav" placeholder="https://..." oninput="refresh()"></div>
+  <div class="field"><label>Twitter / X Handle</label><input id="seo-tw" placeholder="@xeina" oninput="refresh()"></div>
+  <div class="field"><label>Google Analytics ID</label><input id="seo-ga" placeholder="G-XXXXXXXXXX" oninput="refresh()"></div>
+  <div class="sec-hd">Robots</div>
+  <div class="field"><label>Indexing</label><select id="seo-robots" onchange="refresh()"><option value="index,follow">Allow (index + follow)</option><option value="noindex,nofollow">Block (noindex)</option></select></div>
+</div>
+
+</div><!-- /sb-scroll -->
+</div><!-- /sidebar -->
+
+<!-- PREVIEW -->
+<div class="preview-wrap">
+  <div class="preview-bar">
+    <div class="pdot" style="background:#ff5f57"></div>
+    <div class="pdot" style="background:#ffbd2e"></div>
+    <div class="pdot" style="background:#28ca41"></div>
+    <div class="purl" id="purl-bar">xeina-ashraf.github.io — live preview</div>
+  </div>
+  <div class="preview-scaler" id="preview-scaler">
+    <div class="preview-shell" id="preview-shell" style="width:100%">
+      <iframe id="preview-frame" style="width:100%;height:800px;min-height:100vh" scrolling="yes"></iframe>
+    </div>
+  </div>
+</div>
+</div><!-- /workspace -->
+
+<!-- EXPORT MODAL -->
+<div class="modal-ov" id="exp-modal">
+  <div class="modal">
+    <h2>🎉 Portfolio Ready!</h2>
+    <p style="font-size:.82rem;color:#666;margin-bottom:1rem;line-height:1.6">اتبعي الخطوات دي ترفعي السايت على GitHub Pages:</p>
+    <div class="modal-step"><span class="sn">1</span>اضغطي "Download HTML" — هتنزل ملف index.html</div>
+    <div class="modal-step"><span class="sn">2</span>افتحي GitHub وعملي repo جديد</div>
+    <div class="modal-step"><span class="sn">3</span>ارفعي الملف index.html في الـ repo</div>
+    <div class="modal-step"><span class="sn">4</span>Settings → Pages → Source: main / root ✅</div>
+    <div class="modal-step"><span class="sn">5</span>الموقع هيكون على: username.github.io/repo-name</div>
+    <div class="modal-btns">
+      <button class="mbtn p" onclick="dlHTML()">⬇ Download HTML</button>
+      <button class="mbtn p" onclick="copyHTML()">📋 Copy HTML</button>
+      <button class="mbtn s" onclick="closeModal()">Close</button>
+    </div>
+    <p id="copy-ok" style="color:green;font-size:.75rem;margin-top:.5rem;display:none">✅ Copied!</p>
+  </div>
+</div>
+
+<input type="file" id="import-input" accept=".json" style="display:none" onchange="handleImport(this)">
+
+<script>
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+const S = {
+  logo: '',
+  pages: [
+    { id: 'landing', name: 'Landing Page', type: 'landing', sections: ['hero','marquee','about','work','process','contact','footer'], secVis: {} },
+    { id: 'about',   name: 'About',        type: 'about',   sections: ['about','contact','footer'], secVis: {} },
+  ],
+  activePage: 'landing',
+  projects: [
+    { id:1, title:'Élan Diffusion', tag:'Branding', year:'2026', summary:'Luxury fragrance brand identity', desc:'Full brand identity for Élan Diffusion — a luxury fragrance house. Included logo, packaging, and brand guidelines.', cover:'https://cdn.myportfolio.com/d7071b47-a8b8-4564-8e81-8c939ed184f2/23ff3072-3440-47e3-b9cb-2c83f5492b9d_rwc_968x0x5757x4501x32.jpg?h=a27a8e2bb48121d8447bfa6c6ab793ce', slides:[], link:'https://xeinna.myportfolio.com/elan-diffusion', size:'wide', client:'Private', role:'Brand Designer', tools:'Illustrator, Photoshop', featured:true, _open:false },
+    { id:2, title:'Lova', tag:'Branding', year:'2026', summary:'Modern brand identity', desc:'Contemporary brand design for Lova focused on clean typography and a refined palette.', cover:'https://cdn.myportfolio.com/d7071b47-a8b8-4564-8e81-8c939ed184f2/b984f5f8-c20f-4eb5-a2cf-f10676c15d92_carw_202x158x32.png?h=595440455277fb26679d8a51b36436df', slides:[], link:'https://xeinna.myportfolio.com/lova-2', size:'normal', client:'Lova Co.', role:'Visual Designer', tools:'Illustrator', featured:false, _open:false },
+    { id:3, title:'DARB', tag:'Branding', year:'2026', summary:'Urban lifestyle brand', desc:'Brand identity for DARB — a Cairo-based urban lifestyle brand. Focused on bold typography and street culture.', cover:'https://cdn.myportfolio.com/d7071b47-a8b8-4564-8e81-8c939ed184f2/086f9d88-bc56-4411-8a27-587e4d26f945_carw_202x158x32.png?h=50767d585dbce719007de39a3f8de30c', slides:[], link:'https://xeinna.myportfolio.com/darb', size:'normal', client:'DARB', role:'Brand Designer', tools:'Illustrator, Photoshop', featured:false, _open:false },
+  ],
+  services: [
+    { title:'Branding & Visual Identity', link:'' },
+    { title:'Campaigns & Key Visuals', link:'' },
+    { title:'Social Media Design', link:'' },
+  ],
+};
+
+// ── helpers ──
+const gv = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+const gc = id => { const el = document.getElementById(id); return el ? el.value : '#000'; };
+const gi = id => { const el = document.getElementById(id); return el ? parseFloat(el.value)||0 : 0; };
+const ap = () => S.pages.find(p => p.id === S.activePage) || S.pages[0];
+
+// ── adjust color lightness ──
+function adjustHex(hex, amt) {
+  let r = Math.max(0,Math.min(255,parseInt(hex.slice(1,3),16)+amt));
+  let g = Math.max(0,Math.min(255,parseInt(hex.slice(3,5),16)+amt));
+  let b = Math.max(0,Math.min(255,parseInt(hex.slice(5,7),16)+amt));
+  return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+
+// ══════════════════════════════════════════════
+//  PANEL SWITCHING
+// ══════════════════════════════════════════════
+function switchPanel(id) {
+  document.querySelectorAll('.tb-tab').forEach((t,i)=>{
+    t.classList.toggle('active',['identity','pages','sections','projects','branding','seo'][i]===id);
+  });
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  if(id==='sections') renderSecList();
+  if(id==='pages') renderPagesList();
+  if(id==='projects') renderProjects();
+}
+
+// ══════════════════════════════════════════════
+//  PREVIEW SIZES
+// ══════════════════════════════════════════════
+function setPreviewSize(size, btn) {
+  document.querySelectorAll('.psb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const shell = document.getElementById('preview-shell');
+  const frame = document.getElementById('preview-frame');
+  const sizes = { desktop:'100%', tablet:'768px', mobile:'390px' };
+  const heights = { desktop:'100%', tablet:'1024px', mobile:'844px' };
+  shell.style.width = sizes[size];
+  frame.style.height = heights[size];
+}
+
+// ══════════════════════════════════════════════
+//  LOGO
+// ══════════════════════════════════════════════
+function handleLogo(inp) {
+  const f = inp.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    S.logo = e.target.result;
+    document.getElementById('logo-img').src = S.logo;
+    document.getElementById('logo-img').style.display = 'block';
+    document.getElementById('logo-hint').style.display = 'none';
+    refresh();
+  };
+  r.readAsDataURL(f);
+}
+
+// ══════════════════════════════════════════════
+//  SERVICES
+// ══════════════════════════════════════════════
+function renderServices() {
+  const el = document.getElementById('srv-list');
+  if(!el) return;
+  el.innerHTML = S.services.map((s,i) => `
+    <div style="display:flex;gap:.3rem;margin-bottom:.4rem;align-items:center">
+      <input value="${s.title}" style="flex:2;border:1.5px solid var(--border);border-radius:4px;padding:.38rem .6rem;font-size:.76rem;font-family:inherit" oninput="S.services[${i}].title=this.value;refresh()">
+      <input value="${s.link||''}" placeholder="URL" style="flex:1.5;border:1.5px solid var(--border);border-radius:4px;padding:.38rem .6rem;font-size:.76rem;font-family:inherit" oninput="S.services[${i}].link=this.value;refresh()">
+      <button class="del-btn" onclick="S.services.splice(${i},1);renderServices();refresh()">×</button>
+    </div>`).join('');
+}
+function addService() {
+  S.services.push({title:'New Service',link:''});
+  renderServices(); refresh();
+}
+
+// ══════════════════════════════════════════════
+//  PAGES
+// ══════════════════════════════════════════════
+function renderPagesList() {
+  const el = document.getElementById('pages-list'); if(!el) return;
+  el.innerHTML = S.pages.map((pg,i) => `
+    <div class="page-item ${pg.id===S.activePage?'active-page':''}">
+      <span class="page-name">${pg.name} <span class="tag">${pg.type}</span></span>
+      <button class="page-btn" onclick="setActivePage('${pg.id}')">Edit</button>
+      ${pg.id!=='landing'?`<button class="del-btn" onclick="deletePage('${pg.id}')">×</button>`:''}
+    </div>`).join('');
+}
+function setActivePage(id) {
+  S.activePage = id;
+  const pg = ap();
+  document.getElementById('sec-page-label').textContent = pg.name;
+  document.getElementById('purl-bar').textContent = id==='landing'?'index.html':id+'.html';
+  renderPagesList(); renderSecList(); refresh();
+}
+function addPage() {
+  const name = gv('new-page-name').trim(); if(!name) return;
+  const type = gv('new-page-type');
+  const id = name.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+  const defaultSecs = { about:['about','contact','footer'], contact:['contact','footer'], custom:['footer'], project:['footer'] };
+  S.pages.push({ id, name, type, sections: defaultSecs[type]||['footer'], secVis:{} });
+  document.getElementById('new-page-name').value='';
+  renderPagesList(); refresh();
+}
+function deletePage(id) {
+  S.pages = S.pages.filter(p=>p.id!==id);
+  if(S.activePage===id) S.activePage='landing';
+  renderPagesList(); refresh();
+}
+
+// ══════════════════════════════════════════════
+//  SECTIONS
+// ══════════════════════════════════════════════
+function renderSecList() {
+  const el = document.getElementById('sec-list'); if(!el) return;
+  const pg = ap();
+  el.innerHTML = pg.sections.map((s,i) => `
+    <div class="sec-item" draggable="true" ondragstart="dSec=${i}" ondragover="event.preventDefault()" ondrop="dropSec(${i})">
+      <span class="sec-drag">⠿</span>
+      <span class="sec-item-name">${s.replace(/_\d+$/,'').charAt(0).toUpperCase()+s.replace(/_\d+$/,'').slice(1)}</span>
+      <button class="sec-vis ${pg.secVis[s]===false?'':'active'}" onclick="toggleSecVis(${i})">${pg.secVis[s]===false?'Hide':'Show'}</button>
+      <button class="sec-del" onclick="delSec(${i})">×</button>
+    </div>`).join('');
+}
+let dSec = null;
+function dropSec(i) {
+  if(dSec===null||dSec===i) return;
+  const pg = ap(); const arr=[...pg.sections];
+  const [item]=arr.splice(dSec,1); arr.splice(i,0,item);
+  pg.sections=arr; dSec=null;
+  renderSecList(); refresh();
+}
+function toggleSecVis(i) {
+  const pg=ap(); const s=pg.sections[i];
+  pg.secVis[s]=pg.secVis[s]===false?true:false;
+  renderSecList(); refresh();
+}
+function delSec(i) {
+  const pg=ap(); pg.sections.splice(i,1);
+  renderSecList(); refresh();
+}
+function addSec(type) {
+  const pg=ap(); pg.sections.push(type);
+  renderSecList(); refresh();
+}
+
+// ══════════════════════════════════════════════
+//  PROJECTS
+// ══════════════════════════════════════════════
+function renderProjects() {
+  const el = document.getElementById('proj-list'); if(!el) return;
+  el.innerHTML = S.projects.map((p,i) => `
+    <div class="pcard ${p._open?'open':''}" id="pc-${p.id}">
+      <div class="pcard-head" onclick="S.projects[${i}]._open=!S.projects[${i}]._open;renderProjects()">
+        <span class="pcard-dot" style="background:${p.featured?'#f1c40f':'var(--p)'}"></span>
+        <span class="pcard-name">${p.title||'Project'}</span>
+        <span class="pcard-arr">▼</span>
+      </div>
+      <div class="pcard-body">
+        <div class="row2">
+          <div class="field"><label>Name</label><input value="${p.title}" oninput="S.projects[${i}].title=this.value;refresh();document.querySelector('#pc-${p.id} .pcard-name').textContent=this.value"></div>
+          <div class="field"><label>Category</label><input value="${p.tag}" oninput="S.projects[${i}].tag=this.value;refresh()"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Year</label><input value="${p.year}" oninput="S.projects[${i}].year=this.value;refresh()"></div>
+          <div class="field"><label>Client</label><input value="${p.client||''}" oninput="S.projects[${i}].client=this.value;refresh()"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>My Role</label><input value="${p.role||''}" oninput="S.projects[${i}].role=this.value;refresh()"></div>
+          <div class="field"><label>Tools</label><input value="${p.tools||''}" oninput="S.projects[${i}].tools=this.value;refresh()"></div>
+        </div>
+        <div class="field"><label>Short Summary</label><input value="${p.summary||''}" oninput="S.projects[${i}].summary=this.value;refresh()"></div>
+        <div class="field"><label>Full Description</label><textarea oninput="S.projects[${i}].desc=this.value;refresh()">${p.desc||''}</textarea></div>
+        <div class="field"><label>External Link</label><input value="${p.link||''}" oninput="S.projects[${i}].link=this.value;refresh()"></div>
+        <div class="field"><label>Card Size in Grid</label>
+          <div class="size-btns">
+            ${['half','normal','wide','full'].map(sz=>`<button class="size-btn ${p.size===sz?'active':''}" onclick="S.projects[${i}].size='${sz}';renderProjects();refresh()">${sz}</button>`).join('')}
+          </div>
+        </div>
+        <div class="field"><label>Featured (show first)</label>
+          <select onchange="S.projects[${i}].featured=this.value==='1';renderProjects();refresh()">
+            <option value="1" ${p.featured?'selected':''}>Yes</option>
+            <option value="0" ${!p.featured?'selected':''}>No</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Cover Image</label>
+          ${p.cover?`<img src="${p.cover}" style="width:100%;height:70px;object-fit:cover;border-radius:3px;border:1px solid var(--border);margin-bottom:.3rem" onerror="this.style.display='none'">`:''}
+          <div style="display:flex;gap:.3rem;margin-bottom:.3rem">
+            <button class="mini-btn" onclick="document.getElementById('cov-${i}').click()">Upload Cover</button>
+            ${p.cover?`<button class="mini-btn gray" onclick="S.projects[${i}].cover='';renderProjects();refresh()">Remove</button>`:''}
+          </div>
+          <input type="file" id="cov-${i}" accept="image/*" style="display:none" onchange="handleCover(${i},this)">
+          <input value="${/^https?:/.test(p.cover||'')?p.cover:''}" placeholder="Or paste image URL" oninput="S.projects[${i}].cover=this.value;refresh();renderProjects()" style="border:1.5px solid var(--border);border-radius:4px;padding:.38rem .6rem;font-size:.72rem;font-family:inherit;width:100%">
+        </div>
+        <div class="field">
+          <label>Gallery Slides — drag to reorder</label>
+          <div class="thumb-row" id="slides-${i}">
+            ${(p.slides||[]).map((s,si)=>`
+              <div class="thumb" draggable="true" ondragstart="dSlide=[${i},${si}]" ondragover="event.preventDefault()" ondrop="dropSlide(${i},${si})">
+                <img src="${s}" onerror="this.src=''">
+                <button class="thumb-x" onclick="rmSlide(${i},${si})">×</button>
+              </div>`).join('')}
+            <div class="thumb-add" onclick="document.getElementById('sl-${i}').click()" title="Add images">+</div>
+          </div>
+          <input type="file" id="sl-${i}" accept="image/*" multiple style="display:none" onchange="handleSlides(${i},this)">
+          <div style="font-size:.65rem;color:#aaa">Tap × to remove · Drag to reorder · Upload unlimited</div>
+        </div>
+        <div style="display:flex;gap:.3rem;margin-top:.4rem">
+          <button class="del-btn" style="flex:1" onclick="delProject(${i})">Delete Project</button>
+          <button class="mini-btn gray" onclick="dupProject(${i})">Duplicate</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+let dSlide = null;
+function dropSlide(pi,si) {
+  if(!dSlide||dSlide[0]!==pi) return;
+  const [,from]=dSlide; dSlide=null;
+  if(from===si) return;
+  const slides=[...S.projects[pi].slides];
+  const [item]=slides.splice(from,1); slides.splice(si,0,item);
+  S.projects[pi].slides=slides;
+  renderProjects(); refresh();
+}
+function rmSlide(pi,si){ S.projects[pi].slides.splice(si,1); renderProjects(); refresh(); }
+function handleCover(i,inp){ readFile(inp.files[0], d=>{ S.projects[i].cover=d; renderProjects(); refresh(); }); }
+function handleSlides(i,inp){
+  Array.from(inp.files).forEach(f=>readFile(f,d=>{ S.projects[i].slides.push(d); renderProjects(); refresh(); }));
+}
+function readFile(f,cb){ const r=new FileReader(); r.onload=e=>cb(e.target.result); r.readAsDataURL(f); }
+function addProject(){
+  S.projects.push({id:Date.now(),title:'New Project',tag:'Branding',year:'2026',summary:'',desc:'',cover:'',slides:[],link:'#',size:'normal',client:'',role:'',tools:'',featured:false,_open:true});
+  renderProjects(); refresh();
+}
+function delProject(i){ if(confirm('Delete project?')){ S.projects.splice(i,1); renderProjects(); refresh(); } }
+function dupProject(i){ const c={...S.projects[i],id:Date.now(),title:S.projects[i].title+' (copy)',slides:[...S.projects[i].slides],_open:false}; S.projects.splice(i+1,0,c); renderProjects(); refresh(); }
+
+// ══════════════════════════════════════════════
+//  BUILD HTML
+// ══════════════════════════════════════════════
+function buildPage(pg) {
+  const p  = gc('c-p')||'#9b59b6';
+  const bg = gc('c-bg')||'#faf8fc';
+  const alt= gc('c-alt')||'#ffffff';
+  const ink= gc('c-ink')||'#1a1a1a';
+  const mu = gc('c-mu')||'#777';
+  const pd = adjustHex(p,-35);
+  const ppale=p+'15', pmid=p+'28';
+  const font=gv('f-font')||"'Segoe UI',system-ui,sans-serif";
+  const h2sz=gi('f-h2')||2.6;
+  const bsz=gi('f-body')||1;
+  const ls=gi('f-ls')||-.02;
+  const lh=gi('f-lh')||1.85;
+  const br=gi('b-r')||2;
+  const bpv=gi('b-pv')||14;
+  const bph=gi('b-ph')||32;
+  const bstyle=gv('b-style')||'filled';
+  const revOn=gv('a-rev')!=='0';
+  const aspd=gv('a-spd')||'.85';
+  const parOn=gv('a-par')!=='0';
+  const ptOn=gv('a-pt')!=='0';
+  const dmOn=gv('a-dm')!=='0';
+  const mqspd=gi('a-mq')||18;
+  const stg=gi('a-stg')||120;
+  const navStyle=gv('nav-style')||'transparent';
+  const maxw=gi('sec-maxw')||1160;
+  const secpt=gi('sec-pt')||112;
+  const secpb=gi('sec-pb')||112;
+  const name=gv('f-name')||'Zeina Ashraf';
+  const role=gv('f-role')||'Graphic Designer';
+  const b1=gv('f-b1')||'';
+  const b2=gv('f-b2')||'';
+  const port=gv('f-port')||'#';
+  const email=gv('f-email')||'';
+  const ig=gv('f-ig')||'';
+  const beh=gv('f-beh')||'';
+  const li=gv('f-li')||'';
+  const wa=gv('f-wa')||'';
+  const foot=gv('f-foot')||'';
+  const marqRaw=gv('f-marq')||'';
+  const hl1=gv('h-l1')||'Design that';
+  const hl2=gv('h-l2')||'speaks.';
+  const hl3=gv('h-l3')||'before you do.';
+  const hsub=gv('h-sub')||'';
+  const hcta=gv('h-cta')||'View Work';
+  const hcta2=gv('h-cta2')||'Get in Touch';
+  const hl1sz=gi('h-l1sz')||8;
+  const hl2sz=gi('h-l2sz')||14;
+  const hl3sz=gi('h-l3sz')||9;
+  const hbg=gc('h-bg')||'#0a0a0a';
+  const htc=gc('h-tc')||'#f5f0fa';
+  const hscroll=gv('h-scroll')||'Scroll to explore';
+  const seoTitle=gv('seo-title')||'XEINA';
+  const seoDesc=gv('seo-desc')||'';
+  const seoOg=gv('seo-og')||'';
+  const seoFav=gv('seo-fav')||'';
+  const seoTw=gv('seo-tw')||'';
+  const seoGa=gv('seo-ga')||'';
+  const seoRobots=gv('seo-robots')||'index,follow';
+
+  // button style helper
+  const btnHTML=(txt,href,prim)=>{
+    const bg2=prim?p:'transparent';
+    const col=prim?'#fff':p;
+    const bord=`2px solid ${p}`;
+    let baseStyle=`padding:${bpv}px ${bph}px;border-radius:${br}px;text-decoration:none;font-size:.8rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;display:inline-block;transition:all .3s;cursor:pointer;border:${bord};`;
+    if(bstyle==='filled'&&prim) baseStyle+=`background:${p};color:#fff;border-color:${p}`;
+    else if(bstyle==='outline') baseStyle+=`background:transparent;color:${p};`;
+    else if(bstyle==='pill') baseStyle+=`border-radius:999px;background:${prim?p:'transparent'};color:${col};`;
+    else if(bstyle==='underline') baseStyle+=`background:transparent;color:${p};border:none;border-bottom:2px solid ${p};border-radius:0;padding-left:0;padding-right:0;`;
+    else baseStyle+=`background:${bg2};color:${col};`;
+    return `<a href="${href}" style="${baseStyle}" class="xbtn">${txt}</a>`;
+  };
+
+  const logoHTML = S.logo
+    ? `<img src="${S.logo}" style="height:38px;width:auto;object-fit:contain" alt="${name}">`
+    : `<span style="font-size:1.3rem;font-weight:900;letter-spacing:.06em;color:${p}">${name.split(' ')[0].toUpperCase()}</span>`;
+
+  const navBg = navStyle==='transparent'?`rgba(${hexToRgb(alt)||'250,248,252'},.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)`
+    : navStyle==='dark'?'#111'
+    : navStyle==='minimal'?'transparent'
+    : alt;
+  const navBorder = navStyle==='minimal'?'none':`1px solid ${p}22`;
+  const navLinkColor = navStyle==='dark'?'#ccc':mu;
+
+  // build nav links from all pages + sections
+  const navLinks = S.pages.filter(p=>p.id!=='landing').map(p=>`<li><a href="${p.id}.html" style="color:${navLinkColor};text-decoration:none;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;transition:color .3s" class="nlnk">${p.name}</a></li>`).join('')
+    + pg.sections.filter(s=>['about','work','process','contact','services','faq','testimonials'].includes(s.replace(/_\d+$/,'')))
+      .slice(0,4).map(s=>{const k=s.replace(/_\d+$/,''); return `<li><a href="#${k}" style="color:${navLinkColor};text-decoration:none;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;transition:color .3s" class="nlnk">${k.charAt(0).toUpperCase()+k.slice(1)}</a></li>`;}).join('');
+
+  const marqItems = marqRaw.split('•').map(s=>s.trim()).filter(Boolean);
+  const marqHtml = marqItems.map(s=>`${s}<span style="width:4px;height:4px;background:rgba(255,255,255,.4);border-radius:50%;display:inline-block;vertical-align:middle;margin:0 1.5rem"></span>`).join('');
+
+  // section builders
+  const secMap = {
+    hero: ()=>`
+<section id="hero" style="min-height:100vh;background:${hbg};display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;padding:0 5%">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,${p}18 0%,transparent 60%);pointer-events:none"></div>
+  <div style="position:absolute;right:0;top:0;width:1px;height:100%;background:linear-gradient(to bottom,transparent,${p}44,transparent)"></div>
+  <div class="rv" style="position:relative;z-index:1;max-width:${maxw}px;margin:0 auto;width:100%">
+    <div style="font-size:.72rem;letter-spacing:.35em;text-transform:uppercase;color:${p};margin-bottom:3rem;display:flex;align-items:center;gap:1rem">
+      <span style="width:40px;height:1px;background:${p};display:inline-block"></span>${role}
+    </div>
+    <div style="overflow:hidden;margin-bottom:.5rem">
+      <div class="slide-up" style="font-size:${hl1sz}vw;font-weight:700;color:${htc};letter-spacing:-.03em;line-height:1;font-family:${font}">${hl1}</div>
+    </div>
+    <div style="overflow:hidden;margin-bottom:.5rem">
+      <div class="slide-up su2" style="font-size:${hl2sz}vw;font-weight:900;color:${p};letter-spacing:-.04em;line-height:1;font-family:${font};font-style:italic">${hl2}</div>
+    </div>
+    <div style="overflow:hidden;margin-bottom:4rem">
+      <div class="slide-up su3" style="font-size:${hl3sz}vw;font-weight:300;color:${htc}55;letter-spacing:-.02em;line-height:1;font-family:${font}">${hl3}</div>
+    </div>
+    <div class="slide-up su4" style="display:flex;align-items:center;gap:3rem;flex-wrap:wrap">
+      <p style="color:${htc}88;font-size:${bsz}rem;line-height:${lh};max-width:380px">${hsub}</p>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap">
+        ${btnHTML(hcta,'#work',true)}
+        ${btnHTML(hcta2,'#contact',false)}
+      </div>
+    </div>
+  </div>
+  <div class="slide-up su5" style="position:absolute;bottom:2.5rem;left:5%;display:flex;align-items:center;gap:.8rem;font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:${htc}44;z-index:1">
+    <span style="width:1px;height:40px;background:${htc}33;display:inline-block"></span>${hscroll}
+  </div>
+  <div style="position:absolute;bottom:2.5rem;right:5%;font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:${htc}33;z-index:1">${name}</div>
+</section>`,
+
+    marquee: ()=>`
+<div style="background:${p};padding:.8rem 0;overflow:hidden">
+  <div style="display:flex;white-space:nowrap">
+    <div style="display:inline-block;animation:marquee ${mqspd}s linear infinite;font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.82);flex-shrink:0;padding:0 2rem">${marqHtml}${marqHtml}</div>
+    <div style="display:inline-block;animation:marquee ${mqspd}s linear infinite;font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.82);flex-shrink:0;padding:0 2rem" aria-hidden="true">${marqHtml}${marqHtml}</div>
+  </div>
+</div>`,
+
+    about: ()=>`
+<section id="about" style="background:${bg};padding:${secpt}px 5% ${secpb}px">
+  <div style="max-width:${maxw}px;margin:0 auto">
+    <div style="display:grid;grid-template-columns:1fr 1.6fr;gap:7rem;align-items:start">
+      <div class="rv">
+        <div style="font-size:.68rem;letter-spacing:.28em;text-transform:uppercase;color:${p};margin-bottom:1rem">About Me</div>
+        ${[{n:gv('s1n'),l:gv('s1l')},{n:S.projects.length+'+',l:'Projects'},{n:gv('s2n'),l:gv('s2l')},{n:gv('s3n'),l:gv('s3l')}].map(s=>`
+        <div style="border-top:1px solid ${p}22;padding:1.5rem 0">
+          <div style="font-size:3.5rem;font-weight:900;color:${p};line-height:1;letter-spacing:-.04em">${s.n}</div>
+          <div style="font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:${mu};margin-top:.3rem">${s.l}</div>
+        </div>`).join('')}
+        <div style="border-top:1px solid ${p}22"></div>
+      </div>
+      <div class="rv">
+        <h2 style="font-size:${h2sz}rem;font-weight:700;letter-spacing:${ls}em;line-height:1.1;color:${ink};margin-bottom:1.5rem">Crafting purposeful<br>visual stories</h2>
+        <div style="width:40px;height:2px;background:${p};margin-bottom:2.5rem"></div>
+        <p style="color:#555;line-height:${lh};font-size:${bsz}rem;margin-bottom:1.2rem">${b1}</p>
+        <p style="color:#555;line-height:${lh};font-size:${bsz}rem;margin-bottom:2.5rem">${b2}</p>
+        ${S.services.map((s,i)=>`
+        <a href="${s.link||'#'}" style="display:flex;justify-content:space-between;align-items:center;padding:1rem 0;border-top:1px solid ${p}18;text-decoration:none;color:${ink};font-size:.88rem;transition:all .3s;gap:1rem" class="slnk">
+          <span><span style="font-size:.65rem;color:${p};font-weight:800;margin-right:.9rem;letter-spacing:.1em">0${i+1}</span>${s.title}</span>
+          <span style="color:${p};font-size:.9rem;flex-shrink:0">→</span>
+        </a>`).join('')}
+        ${S.services.length?`<div style="height:1px;background:${p}18"></div>`:''}
+      </div>
+    </div>
+  </div>
+</section>`,
+
+    work: ()=>{
+      const layout=gv('proj-layout')||'grid';
+      const cols=gi('proj-cols')||3;
+      const gap=gi('proj-gap')||16;
+      const ratio=gv('proj-ratio')||'4/3';
+      const hover=gv('proj-hover')||'zoom';
+      const sorted=[...S.projects].sort((a,b)=>b.featured-a.featured);
+
+      const sizeMap={half:`calc(${100/cols/2}% - ${gap}px)`,normal:`calc(${100/cols}% - ${gap}px)`,wide:`calc(${Math.min(100,100/cols*2)}% - ${gap}px)`,full:'100%'};
+
+      let gridCss='';
+      if(layout==='grid') gridCss=`display:grid;grid-template-columns:repeat(${cols},1fr);gap:${gap}px`;
+      else if(layout==='masonry') gridCss=`columns:${cols};gap:${gap}px`;
+      else gridCss=`display:flex;flex-direction:column;gap:${gap}px`;
+
+      const cardStyle=(p2)=>{
+        if(layout==='grid'){
+          const span={half:1,normal:1,wide:Math.min(2,cols),full:cols}[p2.size||'normal'];
+          return `grid-column:span ${span}`;
+        }
+        return '';
+      };
+
+      const hoverCSS = hover==='zoom'?'transform:scale(1.06)'
+        : hover==='lift'?'transform:translateY(-6px);box-shadow:0 20px 60px rgba(0,0,0,.15)'
+        : hover==='overlay'?'opacity:.85'
+        : `border-color:${p}!important`;
+
+      return `
+<section id="work" style="background:${alt};border-top:1px solid ${p}18;padding:${secpt}px 5% ${secpb}px">
+  <div style="max-width:${maxw}px;margin:0 auto">
+    <div class="rv" style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:4rem;flex-wrap:wrap;gap:1rem">
+      <div>
+        <div style="font-size:.68rem;letter-spacing:.28em;text-transform:uppercase;color:${p};margin-bottom:.7rem">Selected Work</div>
+        <h2 style="font-size:${h2sz}rem;font-weight:700;letter-spacing:${ls}em;color:${ink}">Recent Projects</h2>
+      </div>
+      <a href="${port}" target="_blank" style="font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:${p};text-decoration:none;border-bottom:2px solid ${p};padding-bottom:.2rem">Full Portfolio →</a>
+    </div>
+    <div class="rv" style="${gridCss}">
+      ${sorted.map((proj,i)=>`
+      <div style="${cardStyle(proj)};border:1.5px solid ${p}18;border-radius:4px;overflow:hidden;cursor:pointer;background:${bg};transition:all .3s;position:relative" onclick="openProj(${proj.id})" class="pcard-item" data-hover="${hoverCSS}">
+        <div style="overflow:hidden;aspect-ratio:${ratio};background:${p}10">
+          <img src="${proj.cover}" alt="${proj.title}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;transition:transform .7s" class="pcard-img">
+        </div>
+        <div style="padding:1rem 1.2rem 1.3rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
+            <span style="font-size:.65rem;letter-spacing:.16em;text-transform:uppercase;color:${p}">${proj.tag}</span>
+            <span style="font-size:.65rem;color:${mu}">${proj.year}</span>
+          </div>
+          <div style="font-size:.95rem;font-weight:700;color:${ink};margin-bottom:.3rem">${proj.title}</div>
+          ${proj.summary?`<div style="font-size:.78rem;color:${mu};line-height:1.5">${proj.summary}</div>`:''}
+          ${proj.client?`<div style="font-size:.68rem;color:${p};margin-top:.5rem;letter-spacing:.06em">Client: ${proj.client}</div>`:''}
+        </div>
+        <div style="position:absolute;top:.8rem;right:.8rem;width:28px;height:28px;border-radius:50%;background:${p};color:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;opacity:0;transition:opacity .3s" class="arr-icon">↗</div>
+      </div>`).join('')}
+    </div>
+  </div>
+</section>`;
+    },
+
+    process: ()=>`
+<section id="process" style="background:${p}0d;border-top:1px solid ${p}18;padding:${secpt}px 5% ${secpb}px">
+  <div style="max-width:${maxw}px;margin:0 auto">
+    <div class="rv" style="margin-bottom:3.5rem">
+      <div style="font-size:.68rem;letter-spacing:.28em;text-transform:uppercase;color:${p};margin-bottom:.7rem">How I Work</div>
+      <h2 style="font-size:${h2sz}rem;font-weight:700;letter-spacing:${ls}em;color:${ink}">My Process</h2>
+      <div style="width:40px;height:2px;background:${p};margin-top:1rem"></div>
+    </div>
+    <div class="rv" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.2rem">
+      ${[{n:'01',h:'Discover',b:'Understanding your brand, audience, and objectives before any design begins.'},
+         {n:'02',h:'Concept',b:'Exploring visual directions and presenting concepts aligned with your vision.'},
+         {n:'03',h:'Design',b:'Crafting final visuals with attention to every detail — typography to color.'},
+         {n:'04',h:'Deliver',b:'Handing over all files in the formats you need, ready to launch.'}]
+        .map(s=>`<div style="background:${alt};border:1.5px solid ${p}22;border-radius:4px;padding:2rem;transition:border-color .3s;cursor:default" class="proc-c">
+          <div style="font-size:3rem;font-weight:900;color:${p}20;line-height:1;margin-bottom:1.2rem;letter-spacing:-.04em">${s.n}</div>
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:.6rem;color:${ink}">${s.h}</h3>
+          <p style="font-size:.83rem;color:${mu};line-height:1.7">${s.b}</p>
+        </div>`).join('')}
+    </div>
+  </div>
+</section>`,
+
+    services: ()=>`
+<section id="services" style="background:${alt};border-top:1px solid ${p}18;padding:${secpt}px 5% ${secpb}px">
+  <div style="max-width:${maxw}px;margin:0 auto">
+    <div class="rv" style="margin-bottom:3.5rem">
+      <div style="font-size:.68rem;letter-spacing:.28em;text-transform:uppercase;color:${p};margin-bottom:.7rem">What I Do</div>
+      <h2 style="font-size:${h2sz}rem;font-weight:700;letter-spacing:${ls}em;color:${ink}">Services</h2>
+    </div>
+    ${S.services.map((s,i)=>`
+    <a href="${s.link||'#'}" class="rv slnk" style="display:flex;justify-content:space-between;align-items:center;padding:1.5rem 0;border-top:1px solid ${p}18;text-decoration:none;color:${ink};font-size:1.05rem;font-weight:600;transition:all .3s;gap:1rem">
+      <span style="display:flex;align-items:center;gap:1.2rem"><span style="font-size:.65rem;color:${p};font-weight:800;letter-spacing:.1em">0${i+1}</span>${s.title}</span>
+      <span style="color:${p};font-size:1.3rem;flex-shrink:0">→</span>
+    </a>`).join('')}
+    ${S.services.length?`<div style="height:1px;background:${p}18"></div>`:''}
+  </div>
+</section>`,
+
+    testimonials: ()=>`
+<section id="testimonials" style="background:${bg};border-top:1px solid ${p}18;padding:${secpt}px 5% ${secpb}px">
+  <div style="max-width:${maxw}px;margin:0 auto">
+    <div class="rv" style="text-align:center;margin-bottom:3.5rem">
+      <div style="font-size:.68rem;letter-spacing:.28em;text-transform:uppercase;color:${p};margin-bottom:.7rem">Kind Words</div>
+      <h2 style="font-size:${h2sz}rem;font-weight:700;color:${ink}">What Clients Say</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem">
+      ${['"Working with Zeina completely transformed our brand. Every detail was considered and executed beautifully."',
+         '"The level of craft and attention she brings to every project is unmatched. Highly recommended."',
+         '"Professional, creative, and a pleasure to work with. The results exceeded our expectations."']
+        .map((t,i)=>`
+      <div class="rv" style="background:${alt};border:1.5px solid ${p}18;border-radius:4px;padding:2rem">
+        <div style="font-size:2.5rem;color:${p};margin-bottom:1rem;line-height:1;font-family:Georgia,serif">"</div>
+        <p style="font-size:.88rem;line-height:1.8;color:#555;margin-bottom:1.5rem">${t}</p>
+        <div style="font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:${p}">— Client ${i+1}</div>
+      </div>`).join('')}
+    </div>
+  </div>
+</section>`,
+
+    cta: ()=>`
+<section style="background:${p};padding:${secpt}px 5% ${secpb}px;text-align:center;position:relative;overflow:hidden">
+  <div style="position:absolute;right:-80px;top:-80px;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.05);pointer-events:none"></div>
+  <div style="position:absolute;left:-60px;bottom:-60px;width:200px;height:200px;background:rgba(255,255,255,.04);clip-path:polygon(50% 0%,100% 100%,0% 100%);pointer-events:none"></div>
+  <div class="rv" style="position:relative;z-index:1;max-width:640px;margin:0 auto">
+    <h2 style="font-size:${h2sz}rem;font-weight:700;color:#fff;margin-bottom:1rem;letter-spacing:${ls}em">Ready to build<br>something great?</h2>
+    <p style="color:rgba(255,255,255,.72);font-size:${bsz}rem;margin-bottom:2.8rem;line-height:${lh}">Let's collaborate on a project that makes your brand impossible to ignore.</p>
+    <a href="#contact" style="background:#fff;color:${p};padding:${bpv}px ${bph}px;border-radius:${br}px;text-decoration:none;font-size:.82rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;display:inline-block;transition:transform .3s" class="xbtn">Let's Work Together</a>
+  </div>
+</section>`,
+
+    faq: ()=>`
+<section id="faq" style="background:${bg};border-top:1px solid ${p}18;padding:${secpt}px 5% ${secpb}px">
+  <div style="max-width:${maxw}px;margin:0 auto">
+    <div class="rv" style="margin-bottom:3rem">
+      <div style="font-size:.68rem;letter-spacing:.28em;text-transform:uppercase;color:${p};margin-bottom:.7rem">Questions</div>
+      <h2 style="font-size:${h2sz}rem;font-weight:700;color:${ink}">FAQ</h2>
+      <div style="width:40px;height:2px;background:${p};margin-top:1rem"></div>
+    </div>
+    ${[['What services do you offer?','Branding, visual identity, social media design, campaigns, and key visuals.'],
+       ['What is your turnaround time?','Depending on scope, projects typically take 1–4 weeks.'],
+       ['Do you work remotely?','Yes — I work with clients remotely across the globe.'],
+       ['How do we start?','Reach out via the contact section and we\'ll schedule a discovery call.']]
+      .map(([q,a])=>`
+    <div class="rv" style="border-top:1px solid ${p}18;padding:1.4rem 0">
+      <div style="font-weight:700;font-size:.95rem;color:${ink};margin-bottom:.6rem">${q}</div>
+      <div style="font-size:.85rem;color:#666;line-height:1.75">${a}</div>
+    </div>`).join('')}
+    <div style="border-top:1px solid ${p}18"></div>
+  </div>
+</section>`,
+
+    contact: ()=>`
+<section id="contact" style="background:${p};padding:${secpt}px 5% ${secpb}px;position:relative;overflow:hidden">
+  <div style="position:absolute;right:-100px;top:-100px;width:400px;height:400px;border-radius:50%;background:rgba(255,255,255,.05);pointer-events:none"></div>
+  <div style="max-width:${maxw}px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:7rem;align-items:center;position:relative;z-index:1">
+    <div class="rv">
+      <div style="font-size:.68rem;letter-spacing:.28em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:.7rem">Let's Work Together</div>
+      <h2 style="font-size:${h2sz}rem;font-weight:700;color:#fff;margin-bottom:1rem;letter-spacing:${ls}em">Have a project<br>in mind?</h2>
+      <div style="width:40px;height:2px;background:rgba(255,255,255,.35);margin-bottom:2rem"></div>
+      <p style="color:rgba(255,255,255,.68);line-height:${lh};font-size:${bsz}rem;margin-bottom:2.5rem">I'm available for freelance projects, brand collaborations, and long-term partnerships.</p>
+      <div style="display:flex;flex-direction:column;gap:.6rem">
+        ${[port&&{label:'Adobe Portfolio',href:port,sub:port},
+           email&&{label:'Email',href:`mailto:${email}`,sub:email},
+           ig&&{label:'Instagram',href:ig,sub:'↗'},
+           beh&&{label:'Behance',href:beh,sub:'↗'},
+           li&&{label:'LinkedIn',href:li,sub:'↗'},
+           wa&&{label:'WhatsApp',href:wa,sub:'↗'}]
+          .filter(Boolean).map(l=>`
+        <a href="${l.href}" target="_blank" style="display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.2rem;border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.82);text-decoration:none;font-size:.83rem;border-radius:2px;transition:all .3s" class="clnk">
+          ${l.label}<span style="font-size:.7rem;opacity:.45">${l.sub}</span>
+        </a>`).join('')}
+      </div>
+    </div>
+    <div class="rv" style="text-align:center">
+      <div style="font-size:clamp(5rem,14vw,11rem);font-weight:900;color:rgba(255,255,255,.06);letter-spacing:-.05em;line-height:1;user-select:none;font-style:italic;font-family:${font}">${name.split(' ')[0].toUpperCase()}</div>
+    </div>
+  </div>
+</section>`,
+
+    gallery: ()=>{
+      const allSlides=S.projects.flatMap(p=>p.slides||[]);
+      return `
+<section style="background:${alt};border-top:1px solid ${p}18;padding:${secpt}px 5% ${secpb}px">
+  <div style="max-width:${maxw}px;margin:0 auto">
+    <div class="rv" style="margin-bottom:2.5rem">
+      <div style="font-size:.68rem;letter-spacing:.28em;text-transform:uppercase;color:${p};margin-bottom:.7rem">Gallery</div>
+      <h2 style="font-size:${h2sz}rem;font-weight:700;color:${ink}">Visual Work</h2>
+    </div>
+    <div class="rv" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem">
+      ${allSlides.slice(0,16).map(src=>`
+      <div style="overflow:hidden;border-radius:4px;border:1.5px solid ${p}15;aspect-ratio:1;background:${bg}">
+        <img src="${src}" style="width:100%;height:100%;object-fit:cover;display:block;transition:transform .7s" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      </div>`).join('')}
+      ${allSlides.length===0?`<div style="grid-column:1/-1;text-align:center;padding:4rem;color:${mu};font-size:.85rem">Add project slides to populate the gallery</div>`:''}
+    </div>
+  </div>
+</section>`;
+    },
+
+    text: ()=>`
+<section style="background:${bg};border-top:1px solid ${p}18;padding:${secpt}px 5% ${secpb}px">
+  <div style="max-width:${Math.round(maxw*.65)}px;margin:0 auto">
+    <div class="rv">
+      <h2 style="font-size:${h2sz}rem;font-weight:700;color:${ink};margin-bottom:1.5rem">Custom Section</h2>
+      <p style="font-size:${bsz}rem;color:#555;line-height:${lh};margin-bottom:1.5rem">Add your custom text content here. This is a rich text section — you can use it for any free-form content.</p>
+      <p style="font-size:${bsz}rem;color:#555;line-height:${lh}">Edit this section's content from the Identity panel or duplicate it for multiple text blocks.</p>
+    </div>
+  </div>
+</section>`,
+
+    stats: ()=>`
+<section style="background:${p};padding:${secpt}px 5% ${secpb}px">
+  <div style="max-width:${maxw}px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:2rem;text-align:center">
+    ${[{n:gv('s1n'),l:gv('s1l')},{n:S.projects.length+'+',l:'Projects'},{n:gv('s2n'),l:gv('s2l')},{n:gv('s3n'),l:gv('s3l')}].map(s=>`
+    <div class="rv">
+      <div style="font-size:4rem;font-weight:900;color:#fff;line-height:1;letter-spacing:-.04em">${s.n}</div>
+      <div style="font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-top:.5rem">${s.l}</div>
+    </div>`).join('')}
+  </div>
+</section>`,
+
+    clients: ()=>`
+<section style="background:${alt};border-top:1px solid ${p}18;padding:${Math.round(secpt*.7)}px 5% ${Math.round(secpb*.7)}px">
+  <div style="max-width:${maxw}px;margin:0 auto;text-align:center">
+    <div style="font-size:.65rem;letter-spacing:.28em;text-transform:uppercase;color:${mu};margin-bottom:2.5rem">Trusted By</div>
+    <div style="display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:3rem;opacity:.4">
+      ${['CLIENT A','CLIENT B','CLIENT C','CLIENT D','CLIENT E'].map(c=>`<div style="font-size:1.1rem;font-weight:800;letter-spacing:.1em;color:${ink}">${c}</div>`).join('')}
+    </div>
+  </div>
+</section>`,
+
+    footer: ()=>`
+<footer style="background:${pd};display:flex;justify-content:space-between;align-items:center;padding:1.3rem 5%;flex-wrap:wrap;gap:.6rem;border-top:1px solid rgba(255,255,255,.08)">
+  <p style="font-size:.7rem;color:rgba(255,255,255,.35)">${foot}</p>
+  <a href="${port}" target="_blank" style="font-size:.7rem;color:rgba(255,255,255,.35);text-decoration:none;text-transform:uppercase;transition:color .3s">${port} ↗</a>
+</footer>`,
+  };
+
+  // project modals
+  const modals = S.projects.map(proj=>`
+<div id="pm-${proj.id}" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:1000;overflow-y:auto;padding:2rem 5%">
+  <button onclick="closeProj(${proj.id})" style="position:fixed;top:1.5rem;right:2rem;background:#fff;border:none;width:40px;height:40px;border-radius:50%;font-size:1.1rem;cursor:pointer;z-index:1001;font-weight:700">×</button>
+  <div style="max-width:900px;margin:0 auto;background:${alt};border-radius:6px;overflow:hidden;margin-top:2rem">
+    ${proj.cover?`<img src="${proj.cover}" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block" alt="${proj.title}">`:''}
+    <div style="padding:2.5rem">
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:.6rem;flex-wrap:wrap">
+        <span style="font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:${p};font-weight:700">${proj.tag}</span>
+        <span style="font-size:.65rem;color:${mu}">· ${proj.year}</span>
+        ${proj.client?`<span style="font-size:.65rem;color:${mu}">· ${proj.client}</span>`:''}
+        ${proj.role?`<span style="font-size:.65rem;color:${mu}">· ${proj.role}</span>`:''}
+        ${proj.tools?`<span style="font-size:.65rem;color:${mu}">· ${proj.tools}</span>`:''}
+      </div>
+      <h2 style="font-size:2rem;font-weight:800;color:${ink};margin-bottom:.8rem;letter-spacing:-.02em">${proj.title}</h2>
+      ${proj.summary?`<p style="font-size:1rem;color:${p};font-weight:600;margin-bottom:1.5rem;line-height:1.6">${proj.summary}</p>`:''}
+      ${(proj.slides||[]).length?`
+      <div style="display:flex;gap:.7rem;overflow-x:auto;padding-bottom:.5rem;margin-bottom:2rem;scrollbar-width:thin">
+        ${(proj.slides||[]).map(s=>`<img src="${s}" style="height:150px;min-width:210px;max-width:210px;object-fit:cover;border-radius:3px;border:1px solid ${p}18;flex-shrink:0">`).join('')}
+      </div>`:''}
+      <p style="font-size:.9rem;color:#555;line-height:1.85;margin-bottom:2rem">${proj.desc||''}</p>
+      ${proj.link&&proj.link!=='#'?`<a href="${proj.link}" target="_blank" style="background:${p};color:#fff;padding:${bpv}px ${bph}px;border-radius:${br}px;text-decoration:none;font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;display:inline-block">View Full Project ↗</a>`:''}
+    </div>
+  </div>
+</div>`).join('');
+
+  const revScript = revOn ? `
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('on');obs.unobserve(e.target);}}),{threshold:.06,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.rv').forEach((el,i)=>{el.style.transitionDelay=(i%8)*${stg}+'ms';obs.observe(el);});` : '';
+
+  const revCSS = revOn ? `.rv{opacity:0;transform:translateY(22px);transition:opacity ${aspd}s ease,transform ${aspd}s ease;}.rv.on{opacity:1;transform:none;}` : '';
+
+  const slideUpCSS=`.slide-up{opacity:0;transform:translateY(40px);transition:opacity .8s ease,transform .8s ease;}.slide-up.on{opacity:1;transform:none;}.su2{transition-delay:.15s}.su3{transition-delay:.28s}.su4{transition-delay:.4s}.su5{transition-delay:.55s}`;
+
+  const visibleSecs = pg.sections.filter(s=>pg.secVis[s]!==false);
+  const sectionsHTML = visibleSecs.map(s=>{
+    const k=s.replace(/_\d+$/,'');
+    return (secMap[k]||(()=>`<section id="${k}" style="padding:${secpt}px 5% ${secpb}px;background:${bg}"><div style="max-width:${maxw}px;margin:0 auto"><h2 style="color:${ink}">Section: ${k}</h2></div></section>`))();
+  }).join('\n');
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>${seoTitle}</title>
+${seoDesc?`<meta name="description" content="${seoDesc}">`:''}
+<meta name="robots" content="${seoRobots}">
+${seoOg?`<meta property="og:image" content="${seoOg}"><meta property="og:title" content="${seoTitle}"><meta property="og:description" content="${seoDesc}">`:''}
+${seoFav?`<link rel="icon" href="${seoFav}">`:''}
+${seoTw?`<meta name="twitter:site" content="${seoTw}">`:''}
+${seoGa?`<script async src="https://www.googletagmanager.com/gtag/js?id=${seoGa}"><\/script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${seoGa}');<\/script>`:''}
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{${gv('a-sm')!=='0'?'scroll-behavior:smooth':''}}
+body{background:${bg};color:${ink};font-family:${font};overflow-x:hidden}
+body.dark{background:#0f0f0f;color:#f0f0f0}
+${revCSS}
+${slideUpCSS}
+.xbtn:hover{opacity:.88;transform:translateY(-2px)!important}
+.nlnk:hover{color:${p}!important}
+.slnk:hover{color:${p}!important;padding-left:.5rem!important}
+.clnk:hover{background:rgba(255,255,255,.1)!important;border-color:rgba(255,255,255,.45)!important}
+.proc-c:hover{border-color:${p}!important}
+.pcard-item:hover .arr-icon{opacity:1!important}
+@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+${dmOn?`.dm{position:fixed;bottom:2rem;right:2rem;background:${alt};border:1.5px solid ${p}33;color:${ink};width:44px;height:44px;border-radius:50%;font-size:1rem;cursor:pointer;z-index:500;box-shadow:0 4px 16px rgba(0,0,0,.12);transition:all .3s}.dm:hover{border-color:${p}}`:''}
+${ptOn?`.ptl{position:fixed;inset:0;background:${p};z-index:9999;pointer-events:none;transform:scaleY(0);transform-origin:bottom;transition:transform .5s cubic-bezier(.76,0,.24,1)}.ptl.in{transform:scaleY(1);transform-origin:bottom}.ptl.out{transform:scaleY(0);transform-origin:top}`:''}
+@media(max-width:900px){
+  section>[style*="grid-template-columns:1fr 1.6fr"]{grid-template-columns:1fr!important;gap:3rem!important}
+  section>[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}
+  h1[style]{font-size:clamp(2.5rem,12vw,5rem)!important}
+}
+</style>
+</head>
+<body>
+${ptOn?'<div class="ptl" id="ptl"></div>':''}
+<nav style="position:fixed;top:0;width:100%;z-index:200;display:flex;justify-content:space-between;align-items:center;padding:.9rem 5%;background:${navBg};border-bottom:${navBorder}">
+  <a href="index.html" style="text-decoration:none">${logoHTML}</a>
+  <ul style="list-style:none;display:flex;gap:1.8rem;align-items:center">
+    ${navLinks}
+    <li><a href="${port}" target="_blank" style="background:${p};color:#fff;padding:.48rem 1.2rem;border-radius:${br}px;text-decoration:none;font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Portfolio ↗</a></li>
+  </ul>
+</nav>
+${sectionsHTML}
+${modals}
+${dmOn?`<button class="dm" id="dmbtn" onclick="toggleDark()">🌙</button>`:''}
+<script>
+${revScript}
+// slide-up hero animations
+const sus=document.querySelectorAll('.slide-up');
+if(sus.length){setTimeout(()=>sus.forEach(el=>el.classList.add('on')),200);}
+// project modals
+function openProj(id){document.getElementById('pm-'+id).style.display='block';document.body.style.overflow='hidden';}
+function closeProj(id){document.getElementById('pm-'+id).style.display='none';document.body.style.overflow='';}
+document.querySelectorAll('[id^="pm-"]').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m){const id=m.id.replace('pm-','');closeProj(id);}});});
+// card hover
+document.querySelectorAll('.pcard-item').forEach(c=>{
+  const hcss=c.dataset.hover;
+  const img=c.querySelector('.pcard-img');
+  c.addEventListener('mouseenter',()=>{if(img&&hcss.includes('scale'))img.style.transform='scale(1.06)';});
+  c.addEventListener('mouseleave',()=>{if(img)img.style.transform='scale(1)';});
+});
+${dmOn?`function toggleDark(){document.body.classList.toggle('dark');document.getElementById('dmbtn').textContent=document.body.classList.contains('dark')?'☀':'🌙';}`:''}
+${ptOn?`document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',()=>{const pt=document.getElementById('ptl');pt.classList.add('in');setTimeout(()=>pt.classList.remove('in'),500);});});`:''}
+<\/script>
+</body></html>`;
+}
+
+function hexToRgb(hex){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return isNaN(r)?null:`${r},${g},${b}`;
+}
+
+// ══════════════════════════════════════════════
+//  REFRESH PREVIEW
+// ══════════════════════════════════════════════
+let debounce;
+function refresh(){
+  clearTimeout(debounce);
+  debounce=setTimeout(()=>{
+    const pg=ap();
+    document.getElementById('preview-frame').srcdoc=buildPage(pg);
+    document.getElementById('sec-page-label').textContent=pg.name;
+    document.getElementById('purl-bar').textContent=pg.id==='landing'?'index.html':pg.id+'.html';
+  },400);
+}
+
+// ══════════════════════════════════════════════
+//  EXPORT
+// ══════════════════════════════════════════════
+function showExport(){ document.getElementById('exp-modal').classList.add('show'); }
+function closeModal(){ document.getElementById('exp-modal').classList.remove('show'); }
+function getHTML(){ return buildPage(ap()); }
+function dlHTML(){
+  const blob=new Blob([getHTML()],{type:'text/html'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=(ap().id==='landing'?'index':ap().id)+'.html'; a.click();
+}
+function copyHTML(){
+  navigator.clipboard.writeText(getHTML()).then(()=>{
+    const ok=document.getElementById('copy-ok');
+    ok.style.display='block'; setTimeout(()=>ok.style.display='none',3000);
+  });
+}
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='xeina-data.json'; a.click();
+}
+function importJSON(){ document.getElementById('import-input').click(); }
+function handleImport(inp){
+  const f=inp.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=e=>{ try{ Object.assign(S,JSON.parse(e.target.result)); renderAll(); refresh(); }catch(err){alert('Invalid file');} };
+  r.readAsText(f);
+}
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+function renderAll(){ renderServices(); renderProjects(); renderSecList(); renderPagesList(); }
+renderAll();
+refresh();
+</script>
+</body>
+</html>
